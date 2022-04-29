@@ -328,7 +328,7 @@ A false_positive_rate of {1.0-NP_EPSILON} has been selected instead."""
                 domain=domain,
                 variables=variables,
                 parameters=parameters,
-                **estimator_kwargs,
+                interpolation_method=self.interpolation_method**estimator_kwargs,
             )
         )
 
@@ -577,7 +577,6 @@ positive integer, or must be omitted (or set to None).
         **kwargs,
     ) -> NumericRangeEstimationResult:
         false_positive_rate: np.float64 = kwargs.get("false_positive_rate", 5.0e-2)
-
         # Obtain num_bootstrap_samples override from "rule state" (i.e., variables and parameters); from instance variable otherwise.
         num_bootstrap_samples: Optional[
             int

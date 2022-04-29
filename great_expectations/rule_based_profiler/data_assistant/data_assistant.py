@@ -372,8 +372,8 @@ def run_profiler_on_data(
         expectation_suite: An existing "ExpectationSuite" to update
         expectation_suite_name: A name for returned "ExpectationSuite"
         include_citation: Flag, which controls whether or not to effective Profiler configuration should be included
-        as a citation in metadata of the "ExpectationSuite" computeds and returned by "RuleBasedProfiler"
-        save_updated_expectation_suite: Flag, constrolling whether or not updated "ExpectationSuite" must be saved
+        as a citation in metadata of the "ExpectationSuite" computed and returned by "RuleBasedProfiler"
+        save_updated_expectation_suite: Flag, controlling whether or not updated "ExpectationSuite" must be saved
     """
     if rules is None:
         rules = []
