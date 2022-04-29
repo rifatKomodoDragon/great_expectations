@@ -58,9 +58,28 @@ class ColumnQuantileValues(ColumnAggregateMetricProvider):
     metric_name = "column.quantile_values"
     value_keys = ("quantiles", "allow_relative_error")
 
+    # how do you create a metric?
+    # how do retrive a metric?
     @column_aggregate_value(engine=PandasExecutionEngine)
+    # similar pattern as it is here
+    # it will already be in Pandas by the time it is in ParamterBuilder
     def _pandas(cls, column, quantiles, allow_relative_error, **kwargs):
         """Quantile Function"""
+        # marker for will
+        # linear = default
+        # lower higher = want to use for min/max
+        # midpoint - may not need
+        # nearest = will be everything else (round up or down depending on where you are)
+        # in most cases the decision will be between linear vs nearest
+        # continuous vs discrete
+
+        # there be dragons : there will need to be somethinking for Self-initializing expectations (is it continuous or discrete?)
+        #   more dragons : are there enough types? (look at semantic types.. there might only be a Numeric type, which may not be detailed enough)
+        # look into : pandas datatypes : int64 or float64 this might be the way to go...
+        # this might be solution ;)
+        #    - where do you do this conversion... may need conversion from np.array --> pandas.df
+        # interpolation option may be None in the self-initializing (and then we buildit from the ^^^ conversion and Pandas Datatype), or you can override in the Expectation?
+        # if interpolation = none then use datatype. or use whatever was defined..
         interpolation_options = ("linear", "lower", "higher", "midpoint", "nearest")
 
         if not allow_relative_error:

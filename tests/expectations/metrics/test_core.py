@@ -110,6 +110,37 @@ def test_stdev_metric_pd():
     assert results == {desired_metric.id: 1}
 
 
+def test_quantiles_metric_interpolation_pd():
+    engine = build_pandas_engine(pd.DataFrame({"a": [1, 2, 3, 4]}))
+
+    metrics: dict = {}
+
+    table_columns_metric: MetricConfiguration
+    results: dict
+
+    table_columns_metric, results = get_table_columns_metric(engine=engine)
+    metrics.update(results)
+
+    desired_metric = MetricConfiguration(
+        metric_name="column.quantile_values",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs={
+            "quantiles": [2.5e-1, 5.0e-1, 7.5e-1],
+            # allow relative error : this is interpolation? shouldn't it just be interpolation?
+            "allow_relative_error": "linear",
+        },
+        metric_dependencies={
+            "table.columns": table_columns_metric,
+        },
+    )
+    results = engine.resolve_metrics(
+        metrics_to_resolve=(desired_metric,), metrics=metrics
+    )
+    metrics.update(results)
+    assert results == {desired_metric.id: [1.75, 2.5, 3.25]}
+
+
+# here is somewhere that we can get the metrics
 def test_quantiles_metric_pd():
     engine = build_pandas_engine(pd.DataFrame({"a": [1, 2, 3, 4]}))
 
@@ -139,6 +170,7 @@ def test_quantiles_metric_pd():
     assert results == {desired_metric.id: [1.75, 2.5, 3.25]}
 
 
+# make sure that it works for sa too
 def test_quantiles_metric_sa(sa):
     engine = build_sa_engine(pd.DataFrame({"a": [1, 2, 3, 4]}), sa)
 
@@ -192,6 +224,7 @@ def test_quantiles_metric_sa(sa):
     assert results == {desired_metric.id: [1.0, 2.0, 3.0]}
 
 
+# and for spark
 def test_quantiles_metric_spark(spark_session):
     engine: SparkDFExecutionEngine = build_spark_engine(
         spark=spark_session,

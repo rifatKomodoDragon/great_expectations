@@ -227,6 +227,8 @@ def get_parameter_value(
     or as a fully-qualified parameter name.  Moreover, if the parameter_reference argument is an object of type "dict",
     it will recursively detect values using the fully-qualified parameter name format and evaluate them accordingly.
     """
+    print(f"parameter_reference: {parameter_reference}")
+    print()
     if isinstance(parameter_reference, dict):
         for key, value in parameter_reference.items():
             parameter_reference[key] = get_parameter_value(
@@ -289,6 +291,9 @@ def get_resolved_metrics_by_key(
             "my_key": Dict[Tuple[str, str, str], Any],
         }
     """
+    print("this is the metric configurations by key")
+    print(metric_configurations_by_key)
+    print("****")
     key: str
     metric_configuration: MetricConfiguration
     metric_configurations_for_key: List[MetricConfiguration]
@@ -407,28 +412,33 @@ def convert_variables_to_dict(
     return variables_as_dict
 
 
+# this is the quantiles. (this is the oneshot method)
 def compute_quantiles(
     metric_values: np.ndarray,
     false_positive_rate: np.float64,
+    interpolation_method: str,
 ) -> Tuple[Number, Number]:
     lower_quantile = np.quantile(
-        metric_values,
-        q=(false_positive_rate / 2),
-        axis=0,
+        metric_values, q=(false_positive_rate / 2), axis=0, method=interpolation_method
     )
+    # this is our friend here ;)
     upper_quantile = np.quantile(
         metric_values,
         q=1.0 - (false_positive_rate / 2),
         axis=0,
+        method=interpolation_method,
     )
     return lower_quantile, upper_quantile
 
 
+# this is the boostrap one
 def compute_bootstrap_quantiles_point_estimate(
     metric_values: np.ndarray,
     false_positive_rate: np.float64,
     n_resamples: int,
     random_seed: Optional[int] = None,
+    # note this is where the change i
+    interpolation_method="auto",
 ) -> Tuple[Number, Number]:
     """
     ML Flow Experiment: parameter_builders_bootstrap/bootstrap_quantiles
@@ -487,8 +497,14 @@ def compute_bootstrap_quantiles_point_estimate(
     lower_quantile_pct: float = false_positive_rate / 2
     upper_quantile_pct: float = 1.0 - false_positive_rate / 2
 
-    sample_lower_quantile: np.ndarray = np.quantile(metric_values, q=lower_quantile_pct)
-    sample_upper_quantile: np.ndarray = np.quantile(metric_values, q=upper_quantile_pct)
+    # this is another method : depeding on what you pass down
+    # this becomes where it is.
+    sample_lower_quantile: np.ndarray = np.quantile(
+        metric_values, q=lower_quantile_pct, method=interpolation_method
+    )
+    sample_upper_quantile: np.ndarray = np.quantile(
+        metric_values, q=upper_quantile_pct, method=interpolation_method
+    )
 
     if random_seed:
         random_state: np.random.Generator = np.random.Generator(
@@ -501,12 +517,12 @@ def compute_bootstrap_quantiles_point_estimate(
         bootstraps: np.ndarray = np.random.choice(
             metric_values, size=(n_resamples, metric_values.size)
         )
-
+    # we also have our np.quantile friend here
+    # quantile is caled again. pass in interpolation method
     bootstrap_lower_quantiles: Union[np.ndarray, Number] = np.quantile(
-        bootstraps,
-        q=lower_quantile_pct,
-        axis=1,
+        bootstraps, q=lower_quantile_pct, axis=1, method=interpolation_method
     )
+    # similar thing happening here.with another parmeter
     bootstrap_lower_quantile_point_estimate: float = np.mean(bootstrap_lower_quantiles)
     bootstrap_lower_quantile_standard_error: float = np.std(bootstrap_lower_quantiles)
     bootstrap_lower_quantile_bias: float = (
@@ -528,9 +544,7 @@ def compute_bootstrap_quantiles_point_estimate(
         )
 
     bootstrap_upper_quantiles: Union[np.ndarray, Number] = np.quantile(
-        bootstraps,
-        q=upper_quantile_pct,
-        axis=1,
+        bootstraps, q=upper_quantile_pct, axis=1, method=interpolation_method
     )
     bootstrap_upper_quantile_point_estimate: np.ndarray = np.mean(
         bootstrap_upper_quantiles

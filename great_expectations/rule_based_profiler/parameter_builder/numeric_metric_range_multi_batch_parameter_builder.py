@@ -58,6 +58,9 @@ class NumericMetricRangeMultiBatchParameterBuilder(MetricMultiBatchParameterBuil
         "upper_bound",
     }
 
+    # https://numpy.org/doc/stable/reference/generated/numpy.quantile.html
+    RECOGNIZED_INTERPOLATION_METHOD_NAMES: set = {"auto", "linear", "nearest"}
+
     def __init__(
         self,
         name: str,
@@ -74,6 +77,8 @@ class NumericMetricRangeMultiBatchParameterBuilder(MetricMultiBatchParameterBuil
         truncate_values: Optional[
             Union[str, Dict[str, Union[Optional[int], Optional[float]]]]
         ] = None,
+        # will flesh this out
+        interpolation_method="auto",
         round_decimals: Optional[Union[str, int]] = None,
         evaluation_parameter_builder_configs: Optional[
             List[ParameterBuilderConfig]
@@ -132,6 +137,17 @@ class NumericMetricRangeMultiBatchParameterBuilder(MetricMultiBatchParameterBuil
 
         self._round_decimals = round_decimals
 
+        # interpolation method can be one of thse 3 values:
+        if (
+            interpolation_method
+            not in NumericMetricRangeMultiBatchParameterBuilder.RECOGNIZED_INTERPOLATION_METHOD_NAMES
+        ):
+            raise ge_exceptions.ProfilerConfigurationError(
+                "interpolation method needs to be either auto (default), linear or nearest"
+            )
+
+        self._interpolation_method = interpolation_method
+
         if not truncate_values:
             truncate_values = {
                 "lower_bound": None,
@@ -156,6 +172,10 @@ detected.
     """
     Full getter/setter accessors for needed properties are for configuring MetricMultiBatchParameterBuilder dynamically.
     """
+
+    @property
+    def interpolation_method(self) -> Optional[str]:
+        return self._interpolation_method
 
     @property
     def false_positive_rate(self) -> Union[str, float]:
@@ -267,18 +287,20 @@ detected.
             )
 
         estimator_func: Callable
-        etimator_kwargs: dict
+        estimator_kwargs: dict
         if estimator == "bootstrap":
             estimator_func = self._get_bootstrap_estimate
             estimator_kwargs = {
                 "false_positive_rate": false_positive_rate,
                 "num_bootstrap_samples": self.num_bootstrap_samples,
                 "bootstrap_random_seed": self.bootstrap_random_seed,
+                "interpolation_method": self.interpolation_method,
             }
         else:
             estimator_func = self._get_deterministic_estimate
             estimator_kwargs = {
                 "false_positive_rate": false_positive_rate,
+                "interpolation_method": self.interpolation_method,
             }
 
         metric_value_range: np.ndarray = self._estimate_metric_value_range(
@@ -289,7 +311,7 @@ detected.
             parameters=parameters,
             **estimator_kwargs,
         )
-
+        # at what point what would you
         return Attributes(
             {
                 FULLY_QUALIFIED_PARAMETER_NAME_VALUE_KEY: metric_value_range,
@@ -315,6 +337,7 @@ detected.
         vector of sample measurements is constructed and given to the estimator to apply its specific algorithm for
         computing the range of values in this vector.  Estimator algorithms differ based on their use of data samples.
         """
+
         truncate_values: Dict[str, Number] = self._get_truncate_values_using_heuristics(
             metric_values=metric_values,
             domain=domain,
@@ -323,6 +346,15 @@ detected.
         )
         lower_bound: Optional[float] = truncate_values.get("lower_bound")
         upper_bound: Optional[float] = truncate_values.get("upper_bound")
+
+        # this is the method that is passed on
+        interpolation_method: str = get_parameter_value_and_validate_return_type(
+            domain=domain,
+            parameter_reference=self.interpolation_method,
+            expected_return_type=str,
+            variables=variables,
+            parameters=parameters,
+        )
 
         round_decimals: int = self._get_round_decimals_using_heuristics(
             metric_values=metric_values,
@@ -337,7 +369,7 @@ detected.
         lower_quantile: Number
         upper_quantile: Number
 
-        # Outer-most dimension is data samples (e.g., one per Batch); the rest are dimensions of the actual metric.
+        # Outermost dimension is data samples (e.g., one per Batch); the rest are dimensions of the actual metric.
         metric_value_shape: tuple = metric_values.shape[1:]
 
         # Generate all permutations of indexes for accessing every element of the multi-dimensional metric.
@@ -412,10 +444,37 @@ detected.
         if metric_value_range.shape[0] == 1:
             metric_value_range = metric_value_range[0]
 
-        if round_decimals == 0:
-            metric_value_range = metric_value_range.astype(np.int64)
+        # does this do somethign similar?
+        # if round_decimals == 0:
+        #    metric_value_range = metric_value_range.astype(np.int64)
+        print(f"round_decimals: {round_decimals}")
+        print(f"metric value range before conversion:{metric_value_range}")
+        # we calculate the semantic type? is there an easy way to determine this?
+        # float_or_int: str = self._get_semantic_type_for_auto(
+        #     metric_values=metric_values,
+        #     domain=domain,
+        #     variables=variables,
+        #     parameters=parameters
+        # )
 
+        # https://stackoverflow.com/questions/49249860/how-to-check-if-float-pandas-column-contains-only-integer-numbers
+        # all(x.is_integer() for x in df.v)
+        # True
+
+        # then we take the metric values and then we do it?
+        # just adding this extra step.
+        # and this ensures that this will work.
+        # NUMERIC
+        # currently we only think about Numeric
+        # if we can
+        # we aren't doing any actual estimation right? or are we do?o
+        #
         return metric_value_range
+
+    def _get_semantic_type_for_auto(
+        self,
+    ):
+        return 0
 
     def _get_truncate_values_using_heuristics(
         self,
@@ -502,6 +561,7 @@ positive integer, or must be omitted (or set to None).
         domain: Domain,
         variables: Optional[ParameterContainer] = None,
         parameters: Optional[Dict[str, ParameterContainer]] = None,
+        interpolation_method: str = "auto",
         **kwargs,
     ) -> Tuple[Number, Number]:
         false_positive_rate: np.float64 = kwargs.get("false_positive_rate", 5.0e-2)
@@ -511,12 +571,21 @@ positive integer, or must be omitted (or set to None).
             int
         ] = get_parameter_value_and_validate_return_type(
             domain=domain,
+            # pulled from kwargs
             parameter_reference=kwargs.get("num_bootstrap_samples"),
             expected_return_type=None,
             variables=variables,
             parameters=parameters,
         )
+        # keep the comment as the num_bootstrap_samples
+        # interpolation_method:
+        # pull from kwargs
+        # it is identical
 
+        # check for correctness : (ie. legal value)
+        #
+
+        # if nothing is specificed... then we use "auto" ie the default
         n_resamples: int
         if num_bootstrap_samples is None:
             n_resamples = DEFAULT_BOOTSTRAP_NUM_RESAMPLES
@@ -531,12 +600,13 @@ positive integer, or must be omitted (or set to None).
             variables=variables,
             parameters=parameters,
         )
-
+        # this is where we go
         return compute_bootstrap_quantiles_point_estimate(
             metric_values=metric_values,
             false_positive_rate=false_positive_rate,
             n_resamples=n_resamples,
             random_seed=random_seed,
+            interpolation_method=interpolation_method,
         )
 
     @staticmethod
@@ -549,4 +619,9 @@ positive integer, or must be omitted (or set to None).
         return compute_quantiles(
             metric_values=metric_values,
             false_positive_rate=false_positive_rate,
+            interpolation_method=interpolation_method,
         )
+
+    @staticmethod
+    def _get_interpolation():
+        pass
