@@ -227,8 +227,8 @@ def get_parameter_value(
     or as a fully-qualified parameter name.  Moreover, if the parameter_reference argument is an object of type "dict",
     it will recursively detect values using the fully-qualified parameter name format and evaluate them accordingly.
     """
-    print(f"parameter_reference: {parameter_reference}")
-    print()
+    # print(f"parameter_reference: {parameter_reference}")
+    # print()
     if isinstance(parameter_reference, dict):
         for key, value in parameter_reference.items():
             parameter_reference[key] = get_parameter_value(
@@ -438,7 +438,7 @@ def compute_bootstrap_quantiles_point_estimate(
     n_resamples: int,
     random_seed: Optional[int] = None,
     # note this is where the change i
-    interpolation_method="auto",
+    interpolation_method="linear",
 ) -> Tuple[Number, Number]:
     """
     ML Flow Experiment: parameter_builders_bootstrap/bootstrap_quantiles

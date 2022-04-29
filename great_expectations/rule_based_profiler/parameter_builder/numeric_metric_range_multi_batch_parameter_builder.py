@@ -78,7 +78,7 @@ class NumericMetricRangeMultiBatchParameterBuilder(MetricMultiBatchParameterBuil
             Union[str, Dict[str, Union[Optional[int], Optional[float]]]]
         ] = None,
         # will flesh this out
-        interpolation_method="auto",
+        interpolation_method="linear",
         round_decimals: Optional[Union[str, int]] = None,
         evaluation_parameter_builder_configs: Optional[
             List[ParameterBuilderConfig]
@@ -445,10 +445,10 @@ detected.
             metric_value_range = metric_value_range[0]
 
         # does this do somethign similar?
-        # if round_decimals == 0:
-        #    metric_value_range = metric_value_range.astype(np.int64)
-        print(f"round_decimals: {round_decimals}")
-        print(f"metric value range before conversion:{metric_value_range}")
+        if round_decimals == 0:
+            metric_value_range = metric_value_range.astype(np.int64)
+        # print(f"round_decimals: {round_decimals}")
+        # print(f"metric value range before conversion:{metric_value_range}")
         # we calculate the semantic type? is there an easy way to determine this?
         # float_or_int: str = self._get_semantic_type_for_auto(
         #     metric_values=metric_values,
@@ -612,6 +612,7 @@ positive integer, or must be omitted (or set to None).
     @staticmethod
     def _get_deterministic_estimate(
         metric_values: np.ndarray,
+        interpolation_method: str,
         **kwargs,
     ) -> Tuple[Number, Number]:
         false_positive_rate: np.float64 = kwargs.get("false_positive_rate", 5.0e-2)
