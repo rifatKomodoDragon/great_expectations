@@ -92,10 +92,6 @@ class AttributedResolvedMetrics(SerializableDictDot):
     def attributed_metric_values(self) -> Optional[Dict[str, MetricValue]]:
         return self.metric_values_by_batch_id
 
-    # @property
-    # def display_name(self) -> Optional[Dict[str, str]]:
-    #     return self.display_name
-
     def add_display_name(self, batch_id: str, display_name: str) -> None:
         if self.display_name is None:
             self.display_name = {}
@@ -496,13 +492,8 @@ specified (empty "metric_name" value detected)."""
             ]
 
         # Step-7: Map resolved metrics to their attributes for identification and recovery by receiver.
-        # this is where the metrics are
         attributed_resolved_metrics_map: Dict[str, AttributedResolvedMetrics] = {}
-        print("HELLOOOOOOOOOOOOO")
         attributed_resolved_metrics: AttributedResolvedMetrics
-        print(attributed_resolved_metrics_map)
-        print("this was the map")
-        # self.batch_list[0].batch_definition.batch_identifiers
         for metric_configuration in metrics_to_resolve:
             attributed_resolved_metrics = attributed_resolved_metrics_map.get(
                 metric_configuration.metric_value_kwargs_id
