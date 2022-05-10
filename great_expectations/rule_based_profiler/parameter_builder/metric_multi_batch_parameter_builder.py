@@ -114,6 +114,7 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
         variables: Optional[ParameterContainer] = None,
         parameters: Optional[Dict[str, ParameterContainer]] = None,
         recompute_existing_parameter_values: bool = False,
+        simplified_representation_of_batch_ids: bool = True,
     ) -> Attributes:
         """
         Builds ParameterContainer object that holds ParameterNode objects with attribute name-value pairs and details.
@@ -121,6 +122,18 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
         Returns:
             Attributes object, containing computed parameter values and parameter computation details metadata.
         """
+        simplified_batch_id_mapping: Union[dict, None] = {}
+        if simplified_representation_of_batch_ids:
+            # compute the mapping that we will be using
+            for batch in self.batch_list:
+                simplified_key: str = "_".join(
+                    v.strip()
+                    for k, v in batch.batch_definition.batch_identifiers.items()
+                )
+                simplified_batch_id_mapping[batch.id] = simplified_key
+        else:
+            simplified_batch_id_mapping = None
+
         metric_computation_result: MetricComputationResult = self.get_metrics(
             metric_name=self.metric_name,
             metric_domain_kwargs=self.metric_domain_kwargs,
@@ -130,9 +143,12 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
             domain=domain,
             variables=variables,
             parameters=parameters,
+            simplified_batch_id_mapping=simplified_batch_id_mapping,
         )
-        details: MetricComputationDetails = metric_computation_result.details
 
+        details: MetricComputationDetails = metric_computation_result.details
+        # how do you do the computation result?
+        metric_computation_result
         # Obtain reduce_scalar_metric from "rule state" (i.e., variables and parameters); from instance variable otherwise.
         reduce_scalar_metric: bool = get_parameter_value_and_validate_return_type(
             domain=domain,
@@ -141,7 +157,11 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
             variables=variables,
             parameters=parameters,
         )
-
+        print(self.batch_list[0].batch_definition.batch_identifiers)
+        print("hello")
+        # this is where we are populating the stuff. can we do somethign about it?
+        reduce_scalar_metric
+        # TODO : are batch_identifiers accessible here?
         if len(metric_computation_result.attributed_resolved_metrics) == 1:
             # As a simplification, apply reduction to scalar in case of one-dimensional metric (for convenience).
             if (
@@ -164,6 +184,7 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
                         ].metric_values[
                             :, 0
                         ],
+                        # here is where we are adding hte attirbute key
                         FULLY_QUALIFIED_PARAMETER_NAME_ATTRIBUTED_VALUE_KEY: metric_computation_result.attributed_resolved_metrics[
                             0
                         ].attributed_metric_values,
@@ -176,6 +197,8 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
                     FULLY_QUALIFIED_PARAMETER_NAME_VALUE_KEY: metric_computation_result.attributed_resolved_metrics[
                         0
                     ].metric_values,
+                    # here is where we are doing this?
+                    # why?
                     FULLY_QUALIFIED_PARAMETER_NAME_ATTRIBUTED_VALUE_KEY: metric_computation_result.attributed_resolved_metrics[
                         0
                     ].attributed_metric_values,
@@ -186,6 +209,7 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
         return Attributes(
             {
                 FULLY_QUALIFIED_PARAMETER_NAME_VALUE_KEY: metric_computation_result.attributed_resolved_metrics,
+                # this is the third one
                 FULLY_QUALIFIED_PARAMETER_NAME_ATTRIBUTED_VALUE_KEY: metric_computation_result.attributed_resolved_metrics,
                 FULLY_QUALIFIED_PARAMETER_NAME_METADATA_KEY: details,
             }

@@ -39,6 +39,7 @@ PARAMETER_KEY: str = (
 )
 
 FULLY_QUALIFIED_PARAMETER_NAME_VALUE_KEY: str = "value"
+# <WILL> here is a marker for the attributed value
 FULLY_QUALIFIED_PARAMETER_NAME_ATTRIBUTED_VALUE_KEY: str = "attributed_value"
 FULLY_QUALIFIED_PARAMETER_NAME_METADATA_KEY: str = "details"
 

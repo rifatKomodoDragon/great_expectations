@@ -266,7 +266,7 @@ class BaseRuleBasedProfiler(ConfigPeer):
         progress_bar: tqdm = tqdm(
             total=len(effective_rules),
             desc="Profiling Dataset",
-            disable=disable,
+            disable=True,
         )
         progress_bar.update(0)
         progress_bar.refresh()

@@ -1251,7 +1251,7 @@ class Validator:
                 progress_bar = tqdm(
                     total=len(ready_metrics) + len(needed_metrics),
                     desc="Calculating Metrics",
-                    disable=disable,
+                    disable=True,
                 )
                 progress_bar.update(0)
                 progress_bar.refresh()

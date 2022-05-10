@@ -2763,6 +2763,44 @@ def test_get_metrics_and_expectations_using_explicit_instantiation(
 
 
 @freeze_time("09/26/2019 13:42:41")
+def test_get_metrics_and_expectations_using_implicit_invocation_helo(
+    quentin_columnar_table_multi_batch_data_context,
+    quentin_expected_metrics_by_domain,
+    quentin_expected_expectation_suite,
+    quentin_expected_rule_based_profiler_configuration,
+    set_consistent_seed_within_numeric_metric_range_multi_batch_parameter_builder,
+):
+    context: DataContext = quentin_columnar_table_multi_batch_data_context
+
+    batch_request: dict = {
+        "datasource_name": "taxi_pandas",
+        "data_connector_name": "monthly",
+        "data_asset_name": "my_reports",
+    }
+
+    registered_data_assistant_name: str = "volume_data_assistant"
+
+    expected_expectation_suite: ExpectationSuite = quentin_expected_expectation_suite(
+        name=registered_data_assistant_name
+    )
+
+    data_assistant_result: DataAssistantResult = context.assistants.volume.run(
+        batch_request=batch_request,
+        expectation_suite_name=expected_expectation_suite.expectation_suite_name,
+    )
+    # print("HELLO")
+    # print(data_assistant_result)
+    # let's actually do this
+    my_domain: Domain = Domain(
+        domain_type="table",
+        rule_name="default_expect_table_row_count_to_be_between_rule",
+    )
+    res = data_assistant_result.metrics_by_domain[my_domain]
+    res
+    print("hello")
+
+
+@freeze_time("09/26/2019 13:42:41")
 def test_get_metrics_and_expectations_using_implicit_invocation(
     quentin_columnar_table_multi_batch_data_context,
     quentin_expected_metrics_by_domain,

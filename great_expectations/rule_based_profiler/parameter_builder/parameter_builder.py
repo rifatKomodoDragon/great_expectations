@@ -78,7 +78,8 @@ class AttributedResolvedMetrics(SerializableDictDot):
     def add_resolved_metric(self, batch_id: str, value: MetricValue) -> None:
         if self.metric_values_by_batch_id is None:
             self.metric_values_by_batch_id = {}
-
+        print(f"batch_id: {batch_id}")
+        print(f"vvalue: {value}")
         if not isinstance(self.metric_values_by_batch_id, OrderedDict):
             self.metric_values_by_batch_id = OrderedDict(self.metric_values_by_batch_id)
 
@@ -332,6 +333,7 @@ class ParameterBuilder(ABC, Builder):
         domain: Optional[Domain] = None,
         variables: Optional[ParameterContainer] = None,
         parameters: Optional[Dict[str, ParameterContainer]] = None,
+        simplified_batch_id_mapping: Optional[Dict[str, str]] = None,
     ) -> MetricComputationResult:
         """
         General multi-batch metric computation facility.
@@ -486,11 +488,13 @@ specified (empty "metric_name" value detected)."""
             ]
 
         # Step-7: Map resolved metrics to their attributes for identification and recovery by receiver.
-
+        # this is where the metrics are
         attributed_resolved_metrics_map: Dict[str, AttributedResolvedMetrics] = {}
-
+        print("HELLOOOOOOOOOOOOO")
         attributed_resolved_metrics: AttributedResolvedMetrics
-
+        print(attributed_resolved_metrics_map)
+        print("this was the map")
+        # self.batch_list[0].batch_definition.batch_identifiers
         for metric_configuration in metrics_to_resolve:
             attributed_resolved_metrics = attributed_resolved_metrics_map.get(
                 metric_configuration.metric_value_kwargs_id
@@ -500,16 +504,24 @@ specified (empty "metric_name" value detected)."""
                     metric_attributes=metric_configuration.metric_value_kwargs,
                     metric_values_by_batch_id=None,
                 )
+
                 attributed_resolved_metrics_map[
                     metric_configuration.metric_value_kwargs_id
                 ] = attributed_resolved_metrics
 
             if metric_configuration.id in resolved_metrics_sorted:
                 resolved_metric_value = resolved_metrics_sorted[metric_configuration.id]
-                attributed_resolved_metrics.add_resolved_metric(
-                    batch_id=metric_configuration.metric_domain_kwargs["batch_id"],
-                    value=resolved_metric_value,
-                )
+                batch_id: str = metric_configuration.metric_domain_kwargs["batch_id"]
+                if simplified_batch_id_mapping:
+                    attributed_resolved_metrics.add_resolved_metric(
+                        batch_id=simplified_batch_id_mapping[batch_id],
+                        value=resolved_metric_value,
+                    )
+                else:
+                    attributed_resolved_metrics.add_resolved_metric(
+                        batch_id=batch_id,
+                        value=resolved_metric_value,
+                    )
             else:
                 continue
 
