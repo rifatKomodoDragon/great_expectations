@@ -2763,7 +2763,7 @@ def test_get_metrics_and_expectations_using_explicit_instantiation(
 
 
 @freeze_time("09/26/2019 13:42:41")
-def test_get_metrics_and_expectations_using_implicit_invocation_single_batch(
+def test_get_metrics_and_expectations_using_implicit_invocation_WIP(
     quentin_columnar_table_multi_batch_data_context,
     quentin_expected_metrics_by_domain,
     quentin_expected_expectation_suite,
@@ -2794,6 +2794,13 @@ def test_get_metrics_and_expectations_using_implicit_invocation_single_batch(
     )
     # this will contain the display name
     res_by_domain = data_assistant_result.metrics_by_domain[my_domain]
+    # discussion with Alex 0510
+    # get all of the returned Batches
+    # All Batches are avialable at Validator-level if you are a DataAssistant
+    # The plot() module should be able to look the friendly name :
+    # step 1: all the batches we care about exist in Validator
+    # step 2: DataAssistant : gets a method:
+    # step 3: We can put
 
 
 @freeze_time("09/26/2019 13:42:41")

@@ -194,6 +194,7 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
                         0
                     ].attributed_metric_values,
                     FULLY_QUALIFIED_PARAMETER_NAME_METADATA_KEY: details,
+                    # check if this is all going to match up in the same order
                     FULLY_QUALIFIED_PARAMETER_NAME_DISPLAY_NAME: list(
                         metric_computation_result.attributed_resolved_metrics[
                             0
