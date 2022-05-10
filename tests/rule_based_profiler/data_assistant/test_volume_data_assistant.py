@@ -2796,7 +2796,6 @@ def test_get_metrics_and_expectations_using_implicit_invocation_helo(
         rule_name="default_expect_table_row_count_to_be_between_rule",
     )
     res = data_assistant_result.metrics_by_domain[my_domain]
-    res
     print("hello")
 
 

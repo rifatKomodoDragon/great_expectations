@@ -60,6 +60,7 @@ class AttributedResolvedMetrics(SerializableDictDot):
     """
 
     metric_attributes: Optional[Attributes] = None
+    display_name: Optional[Dict[str, str]] = None
     metric_values_by_batch_id: Optional[Dict[str, MetricValue]] = None
 
     @staticmethod
@@ -78,8 +79,6 @@ class AttributedResolvedMetrics(SerializableDictDot):
     def add_resolved_metric(self, batch_id: str, value: MetricValue) -> None:
         if self.metric_values_by_batch_id is None:
             self.metric_values_by_batch_id = {}
-        print(f"batch_id: {batch_id}")
-        print(f"vvalue: {value}")
         if not isinstance(self.metric_values_by_batch_id, OrderedDict):
             self.metric_values_by_batch_id = OrderedDict(self.metric_values_by_batch_id)
 
@@ -92,6 +91,15 @@ class AttributedResolvedMetrics(SerializableDictDot):
     @property
     def attributed_metric_values(self) -> Optional[Dict[str, MetricValue]]:
         return self.metric_values_by_batch_id
+
+    # @property
+    # def display_name(self) -> Optional[Dict[str, str]]:
+    #     return self.display_name
+
+    def add_display_name(self, batch_id: str, display_name: str) -> None:
+        if self.display_name is None:
+            self.display_name = {}
+        self.display_name[batch_id] = display_name
 
     @property
     def metric_values(self) -> MetricValues:
@@ -513,15 +521,15 @@ specified (empty "metric_name" value detected)."""
                 resolved_metric_value = resolved_metrics_sorted[metric_configuration.id]
                 batch_id: str = metric_configuration.metric_domain_kwargs["batch_id"]
                 if simplified_batch_id_mapping:
-                    attributed_resolved_metrics.add_resolved_metric(
-                        batch_id=simplified_batch_id_mapping[batch_id],
-                        value=resolved_metric_value,
-                    )
-                else:
-                    attributed_resolved_metrics.add_resolved_metric(
+                    attributed_resolved_metrics.add_display_name(
                         batch_id=batch_id,
-                        value=resolved_metric_value,
+                        display_name=simplified_batch_id_mapping[batch_id],
                     )
+
+                attributed_resolved_metrics.add_resolved_metric(
+                    batch_id=batch_id,
+                    value=resolved_metric_value,
+                )
             else:
                 continue
 
