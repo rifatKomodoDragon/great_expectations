@@ -14,7 +14,8 @@ from collections import OrderedDict
 from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, Union, cast
 
 from dateutil.parser import parse
-from ruamel.yaml import YAML
+
+# from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
 from great_expectations.core.usage_statistics.events import UsageStatsEvents
@@ -64,6 +65,7 @@ from great_expectations.core.usage_statistics.usage_statistics import (
     usage_statistics_enabled_method,
 )
 from great_expectations.core.util import nested_update
+from great_expectations.core.yaml_handler import YAMLHandler
 from great_expectations.data_asset import DataAsset
 from great_expectations.data_context.store import Store, TupleStoreBackend
 from great_expectations.data_context.store.expectations_store import ExpectationsStore
@@ -127,9 +129,11 @@ except ImportError:
     SQLAlchemyError = ge_exceptions.ProfilerError
 
 logger = logging.getLogger(__name__)
-yaml = YAML()
-yaml.indent(mapping=2, sequence=4, offset=2)
-yaml.default_flow_style = False
+yaml: YAMLHandler = YAMLHandler()
+# yaml = YAML()
+# this code already exists at the YAMLHandler() level
+# yaml.indent(mapping=2, sequence=4, offset=2)
+# yaml.default_flow_style = False
 
 
 # TODO: <WILL> Most of the logic here will be migrated to EphemeralDataContext
@@ -238,10 +242,10 @@ class BaseDataContext(EphemeralDataContext):
     --ge-feature-maturity-info--
     """
 
-    PROFILING_ERROR_CODE_TOO_MANY_DATA_ASSETS = 2
-    PROFILING_ERROR_CODE_SPECIFIED_DATA_ASSETS_NOT_FOUND = 3
-    PROFILING_ERROR_CODE_NO_BATCH_KWARGS_GENERATORS_FOUND = 4
-    PROFILING_ERROR_CODE_MULTIPLE_BATCH_KWARGS_GENERATORS_FOUND = 5
+    # PROFILING_ERROR_CODE_TOO_MANY_DATA_ASSETS = 2
+    # PROFILING_ERROR_CODE_SPECIFIED_DATA_ASSETS_NOT_FOUND = 3
+    # PROFILING_ERROR_CODE_NO_BATCH_KWARGS_GENERATORS_FOUND = 4
+    # PROFILING_ERROR_CODE_MULTIPLE_BATCH_KWARGS_GENERATORS_FOUND = 5
     UNCOMMITTED_DIRECTORIES = ["data_docs", "validations"]
     GE_UNCOMMITTED_DIR = "uncommitted"
     BASE_DIRECTORIES = [
@@ -254,70 +258,73 @@ class BaseDataContext(EphemeralDataContext):
     GE_DIR = "great_expectations"
     GE_YML = "great_expectations.yml"
     GE_EDIT_NOTEBOOK_DIR = GE_UNCOMMITTED_DIR
-    FALSEY_STRINGS = ["FALSE", "false", "False", "f", "F", "0"]
+
+    # FALSEY_STRINGS = ["FALSE", "false", "False", "f", "F", "0"]
     GLOBAL_CONFIG_PATHS = [
         os.path.expanduser("~/.great_expectations/great_expectations.conf"),
         "/etc/great_expectations.conf",
     ]
+    # this one is a little funny
     DOLLAR_SIGN_ESCAPE_STRING = r"\$"
-    TEST_YAML_CONFIG_SUPPORTED_STORE_TYPES = [
-        "ExpectationsStore",
-        "ValidationsStore",
-        "HtmlSiteStore",
-        "EvaluationParameterStore",
-        "MetricStore",
-        "SqlAlchemyQueryStore",
-        "CheckpointStore",
-        "ProfilerStore",
-    ]
-    TEST_YAML_CONFIG_SUPPORTED_DATASOURCE_TYPES = [
-        "Datasource",
-        "SimpleSqlalchemyDatasource",
-    ]
-    TEST_YAML_CONFIG_SUPPORTED_DATA_CONNECTOR_TYPES = [
-        "InferredAssetFilesystemDataConnector",
-        "ConfiguredAssetFilesystemDataConnector",
-        "InferredAssetS3DataConnector",
-        "ConfiguredAssetS3DataConnector",
-        "InferredAssetAzureDataConnector",
-        "ConfiguredAssetAzureDataConnector",
-        "InferredAssetGCSDataConnector",
-        "ConfiguredAssetGCSDataConnector",
-        "InferredAssetSqlDataConnector",
-        "ConfiguredAssetSqlDataConnector",
-    ]
-    TEST_YAML_CONFIG_SUPPORTED_CHECKPOINT_TYPES = [
-        "Checkpoint",
-        "SimpleCheckpoint",
-    ]
-    TEST_YAML_CONFIG_SUPPORTED_PROFILER_TYPES = [
-        "RuleBasedProfiler",
-    ]
-    ALL_TEST_YAML_CONFIG_DIAGNOSTIC_INFO_TYPES = [
-        "__substitution_error__",
-        "__yaml_parse_error__",
-        "__custom_subclass_not_core_ge__",
-        "__class_name_not_provided__",
-    ]
-    ALL_TEST_YAML_CONFIG_SUPPORTED_TYPES = (
-        TEST_YAML_CONFIG_SUPPORTED_STORE_TYPES
-        + TEST_YAML_CONFIG_SUPPORTED_DATASOURCE_TYPES
-        + TEST_YAML_CONFIG_SUPPORTED_DATA_CONNECTOR_TYPES
-        + TEST_YAML_CONFIG_SUPPORTED_CHECKPOINT_TYPES
-        + TEST_YAML_CONFIG_SUPPORTED_PROFILER_TYPES
-    )
+    # TEST_YAML_CONFIG_SUPPORTED_STORE_TYPES = [
+    #     "ExpectationsStore",
+    #     "ValidationsStore",
+    #     "HtmlSiteStore",
+    #     "EvaluationParameterStore",
+    #     "MetricStore",
+    #     "SqlAlchemyQueryStore",
+    #     "CheckpointStore",
+    #     "ProfilerStore",
+    # ]
+    # TEST_YAML_CONFIG_SUPPORTED_DATASOURCE_TYPES = [
+    #     "Datasource",
+    #     "SimpleSqlalchemyDatasource",
+    # ]
+    # TEST_YAML_CONFIG_SUPPORTED_DATA_CONNECTOR_TYPES = [
+    #     "InferredAssetFilesystemDataConnector",
+    #     "ConfiguredAssetFilesystemDataConnector",
+    #     "InferredAssetS3DataConnector",
+    #     "ConfiguredAssetS3DataConnector",
+    #     "InferredAssetAzureDataConnector",
+    #     "ConfiguredAssetAzureDataConnector",
+    #     "InferredAssetGCSDataConnector",
+    #     "ConfiguredAssetGCSDataConnector",
+    #     "InferredAssetSqlDataConnector",
+    #     "ConfiguredAssetSqlDataConnector",
+    # ]
+    # TEST_YAML_CONFIG_SUPPORTED_CHECKPOINT_TYPES = [
+    #     "Checkpoint",
+    #     "SimpleCheckpoint",
+    # ]
+    # TEST_YAML_CONFIG_SUPPORTED_PROFILER_TYPES = [
+    #     "RuleBasedProfiler",
+    # ]
+    # ALL_TEST_YAML_CONFIG_DIAGNOSTIC_INFO_TYPES = [
+    #     "__substitution_error__",
+    #     "__yaml_parse_error__",
+    #     "__custom_subclass_not_core_ge__",
+    #     "__class_name_not_provided__",
+    # ]
+    # ALL_TEST_YAML_CONFIG_SUPPORTED_TYPES = (
+    #     TEST_YAML_CONFIG_SUPPORTED_STORE_TYPES
+    #     + TEST_YAML_CONFIG_SUPPORTED_DATASOURCE_TYPES
+    #     + TEST_YAML_CONFIG_SUPPORTED_DATA_CONNECTOR_TYPES
+    #     + TEST_YAML_CONFIG_SUPPORTED_CHECKPOINT_TYPES
+    #     + TEST_YAML_CONFIG_SUPPORTED_PROFILER_TYPES
+    # )
 
     _data_context = None
 
-    @classmethod
-    def validate_config(cls, project_config: Union[DataContextConfig, Mapping]) -> bool:
-        if isinstance(project_config, DataContextConfig):
-            return True
-        try:
-            dataContextConfigSchema.load(project_config)
-        except ValidationError:
-            raise
-        return True
+    # although tested in-memory configs, they are expecting FileSystem (S3 or FileSystem) Stores.. i think
+    # @classmethod
+    # def validate_config(cls, project_config: Union[DataContextConfig, Mapping]) -> bool:
+    #     if isinstance(project_config, DataContextConfig):
+    #         return True
+    #     try:
+    #         dataContextConfigSchema.load(project_config)
+    #     except ValidationError:
+    #         raise
+    #     return True
 
     @usage_statistics_enabled_method(
         event_name=UsageStatsEvents.DATA_CONTEXT___INIT__.value,
@@ -341,56 +348,64 @@ class BaseDataContext(EphemeralDataContext):
         Returns:
             None
         """
-        if not BaseDataContext.validate_config(project_config):
+        # Magic... hocus pocus
+        super().__init__(
+            project_config=project_config,
+            context_root_dir=context_root_dir,
+            runtime_environment=runtime_environment,
+        )
+
+        if not super().validate_config(project_config):
             raise ge_exceptions.InvalidConfigError(
                 "Your project_config is not valid. Try using the CLI check-config command."
             )
+
         self._ge_cloud_mode = ge_cloud_mode
         self._ge_cloud_config = ge_cloud_config
-        self._project_config = project_config
+        # self._project_config = project_config
         self._apply_global_config_overrides()
-
-        if context_root_dir is not None:
-            context_root_dir = os.path.abspath(context_root_dir)
-        self._context_root_directory = context_root_dir
-
-        self.runtime_environment = runtime_environment or {}
-
+        #
+        # if context_root_dir is not None:
+        #     context_root_dir = os.path.abspath(context_root_dir)
+        # self._context_root_directory = context_root_dir
+        #
+        # self.runtime_environment = runtime_environment or {}
+        #
         # Init plugin support
         if self.plugins_directory is not None and os.path.exists(
             self.plugins_directory
         ):
             sys.path.append(self.plugins_directory)
-
-        # We want to have directories set up before initializing usage statistics so that we can obtain a context instance id
-        self._in_memory_instance_id = (
-            None  # This variable *may* be used in case we cannot save an instance id
-        )
-
-        # Init stores
-        self._stores = {}
+        #
+        # # We want to have directories set up before initializing usage statistics so that we can obtain a context instance id
+        # self._in_memory_instance_id = (
+        #     None  # This variable *may* be used in case we cannot save an instance id
+        # )
+        #
+        # # Init stores
+        # self._stores = {}
         self._init_stores(self.project_config_with_variables_substituted.stores)
-
+        #
         # Init data_context_id
         self._data_context_id = self._construct_data_context_id()
-
-        # Override the project_config data_context_id if an expectations_store was already set up
+        #
+        # # Override the project_config data_context_id if an expectations_store was already set up
         self.config.anonymous_usage_statistics.data_context_id = self._data_context_id
         self._initialize_usage_statistics(
             self.project_config_with_variables_substituted.anonymous_usage_statistics
         )
-
-        # Store cached datasources but don't init them
-        self._cached_datasources = {}
-
+        #
+        # # Store cached datasources but don't init them
+        # self._cached_datasources = {}
+        #
         # Build the datasources we know about and have access to
         self._init_datasources(self.project_config_with_variables_substituted)
 
-        # Init validation operators
-        # NOTE - 20200522 - JPC - A consistent approach to lazy loading for plugins will be useful here, harmonizing
-        # the way that execution environments (AKA datasources), validation operators, site builders and other
-        # plugins are built.
-        self.validation_operators = {}
+        # # Init validation operators
+        # # NOTE - 20200522 - JPC - A consistent approach to lazy loading for plugins will be useful here, harmonizing
+        # # the way that execution environments (AKA datasources), validation operators, site builders and other
+        # # plugins are built.
+        # self.validation_operators = {}
         # NOTE - 20210112 - Alex Sherstinsky - Validation Operators are planned to be deprecated.
         if (
             "validation_operators" in self.get_config().commented_map
@@ -405,10 +420,10 @@ class BaseDataContext(EphemeralDataContext):
                     validation_operator_config,
                 )
 
-        self._evaluation_parameter_dependencies_compiled = False
-        self._evaluation_parameter_dependencies = {}
-
-        self._assistants = DataAssistantDispatcher(data_context=self)
+        # self._evaluation_parameter_dependencies_compiled = False
+        # self._evaluation_parameter_dependencies = {}
+        #
+        # self._assistants = DataAssistantDispatcher(data_context=self)
 
     @property
     def ge_cloud_config(self) -> Optional[GeCloudConfig]:
@@ -1164,26 +1179,26 @@ class BaseDataContext(EphemeralDataContext):
         with open(config_variables_filepath, "w") as config_variables_file:
             yaml.dump(config_variables, config_variables_file)
 
-    def delete_datasource(self, datasource_name: str) -> None:
-        """Delete a data source
-        Args:
-            datasource_name: The name of the datasource to delete.
-
-        Raises:
-            ValueError: If the datasource name isn't provided or cannot be found.
-        """
-        if datasource_name is None:
-            raise ValueError("Datasource names must be a datasource name")
-        else:
-            datasource = self.get_datasource(datasource_name=datasource_name)
-            if datasource:
-                # remove key until we have a delete method on project_config
-                # self.project_config_with_variables_substituted.datasources[
-                # datasource_name].remove()
-                del self.config["datasources"][datasource_name]
-                del self._cached_datasources[datasource_name]
-            else:
-                raise ValueError(f"Datasource {datasource_name} not found")
+    # def delete_datasource(self, datasource_name: str) -> None:
+    #     """Delete a data source
+    #     Args:
+    #         datasource_name: The name of the datasource to delete.
+    #
+    #     Raises:
+    #         ValueError: If the datasource name isn't provided or cannot be found.
+    #     """
+    #     if datasource_name is None:
+    #         raise ValueError("Datasource names must be a datasource name")
+    #     else:
+    #         datasource = self.get_datasource(datasource_name=datasource_name)
+    #         if datasource:
+    #             # remove key until we have a delete method on project_config
+    #             # self.project_config_with_variables_substituted.datasources[
+    #             # datasource_name].remove()
+    #             del self.config["datasources"][datasource_name]
+    #             del self._cached_datasources[datasource_name]
+    #         else:
+    #             raise ValueError(f"Datasource {datasource_name} not found")
 
     def get_available_data_asset_names(
         self, datasource_names=None, batch_kwargs_generator_names=None

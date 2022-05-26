@@ -10,5 +10,3 @@ class FileDataContext(AbstractDataContext):
     TODO: Most of the functionality in DataContext will be refactored into this class, and the current DataContext
     class will exist only for backwards-compatibility reasons.
     """
-
-    pass
